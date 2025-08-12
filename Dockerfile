@@ -15,4 +15,4 @@ RUN echo "eula=true" > eula.txt
 EXPOSE 25565
 
 # Server starten
-CMD ["java", "@user_jvm_args.txt", "@libraries/net/neoforged/neoforge/21.1.180/unix_args.txt", "$@"]
+CMD java @user_jvm_args.txt @libraries/net/neoforged/neoforge/21.1.180/unix_args.txt "$@"
