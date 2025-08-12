@@ -1,18 +1,33 @@
 FROM openjdk:18-jdk-slim
 
-WORKDIR /server
+# --- Metadaten ---
+LABEL maintainer="itsbonfiretime@gmail.com"
+LABEL description="Minecraft Server Container mit OpenJDK 18 slim und Create-Live-6 Modpack"
 
-# Git installieren
-RUN apt-get update && apt-get install -y git unzip && rm -rf /var/lib/apt/lists/*
+# --- Umgebungsvariablen ---
+ENV MINECRAFT_HOME=/server
+ENV EULA=true
+ENV PORT=25565
 
-# Serverdaten von GitHub holen
-RUN git clone https://github.com/ItsBonfireTime/Create-Live-6.git /server
+# --- Systemabhängigkeiten installieren ---
+# git und unzip werden benötigt, danach Caches löschen um Image klein zu halten
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends git unzip && \
+    rm -rf /var/lib/apt/lists/*
 
-# EULA akzeptieren
-RUN echo "eula=true" > eula.txt
+# --- Serverdateien klonen ---
+RUN git clone https://github.com/ItsBonfireTime/Create-Live-6.git ${MINECRAFT_HOME}
 
-# Port freigeben
-EXPOSE 25565
+WORKDIR ${MINECRAFT_HOME}
 
-# Server starten
-CMD java @user_jvm_args.txt @libraries/net/neoforged/neoforge/21.1.180/unix_args.txt "$@"
+# --- EULA akzeptieren ---
+RUN echo "eula=${EULA}" > eula.txt
+
+# --- Ports freigeben ---
+EXPOSE ${PORT}
+
+# --- Startbefehl ---
+# JVM-Parameter werden aus user_jvm_args.txt geladen
+# Zusätzlich werden unix_args.txt für Neoforged Mod hinzugefügt
+# "$@" erlaubt Flexibilität beim Überschreiben von Startparametern
+CMD ["sh", "-c", "java @user_jvm_args.txt @libraries/net/neoforged/neoforge/21.1.180/unix_args.txt \"$@\""]
